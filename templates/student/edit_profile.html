@@ -844,6 +844,46 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Store profile data
+        const profileData = {
+            education: [
+                {% for edu in profile.education %}
+                {
+                    id: {{ edu.id }},
+                    degree: "{{ edu.degree|safe }}",
+                    institution: "{{ edu.institution|safe }}",
+                    field_of_study: "{{ edu.field_of_study|safe if edu.field_of_study else '' }}",
+                    grade: "{{ edu.grade|safe if edu.grade else '' }}",
+                    start_date: "{{ edu.start_date.strftime('%Y-%m-%d') if edu.start_date else '' }}",
+                    end_date: "{{ edu.end_date.strftime('%Y-%m-%d') if edu.end_date else '' }}"
+                }{{ ',' if not loop.last else '' }}
+                {% endfor %}
+            ],
+            experience: [
+                {% for exp in profile.work_experience %}
+                {
+                    id: {{ exp.id }},
+                    position: "{{ exp.position|safe }}",
+                    company: "{{ exp.company|safe }}",
+                    description: "{{ exp.description|safe if exp.description else '' }}",
+                    start_date: "{{ exp.start_date.strftime('%Y-%m-%d') if exp.start_date else '' }}",
+                    end_date: "{{ exp.end_date.strftime('%Y-%m-%d') if exp.end_date else '' }}"
+                }{{ ',' if not loop.last else '' }}
+                {% endfor %}
+            ],
+            certifications: [
+                {% for cert in profile.certifications %}
+                {
+                    id: {{ cert.id }},
+                    name: "{{ cert.name|safe }}",
+                    issuing_organization: "{{ cert.issuing_organization|safe if cert.issuing_organization else '' }}",
+                    issue_date: "{{ cert.issue_date.strftime('%Y-%m-%d') if cert.issue_date else '' }}",
+                    credential_url: "{{ cert.credential_url|safe if cert.credential_url else '' }}"
+                }{{ ',' if not loop.last else '' }}
+                {% endfor %}
+            ]
+        };
+
         // Personal Info Form
         document.getElementById('personalInfoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -863,6 +903,8 @@
             const data = await response.json();
             if (data.success) {
                 Swal.fire('Success!', 'Personal information updated!', 'success');
+            } else {
+                Swal.fire('Error!', data.message || 'Failed to update profile', 'error');
             }
         });
 
@@ -870,8 +912,31 @@
         function showEducationModal(eduId = null) {
             document.getElementById('educationForm').reset();
             document.getElementById('edu_id').value = '';
+
+            const modalTitle = document.querySelector('#educationModal .modal-title');
+
+            if (eduId) {
+                const edu = profileData.education.find(e => e.id === eduId);
+                if (edu) {
+                    document.getElementById('edu_id').value = edu.id;
+                    document.getElementById('edu_degree').value = edu.degree;
+                    document.getElementById('edu_institution').value = edu.institution;
+                    document.getElementById('edu_field').value = edu.field_of_study;
+                    document.getElementById('edu_grade').value = edu.grade;
+                    document.getElementById('edu_start').value = edu.start_date;
+                    document.getElementById('edu_end').value = edu.end_date;
+                    modalTitle.textContent = 'Edit Education';
+                }
+            } else {
+                modalTitle.textContent = 'Add Education';
+            }
+
             const modal = new bootstrap.Modal(document.getElementById('educationModal'));
             modal.show();
+        }
+
+        function editEducation(id) {
+            showEducationModal(id);
         }
 
         document.getElementById('educationForm').addEventListener('submit', async (e) => {
@@ -897,6 +962,8 @@
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('educationModal')).hide();
                 Swal.fire('Success!', 'Education saved!', 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error!', data.message || 'Failed to save education', 'error');
             }
         });
 
@@ -915,16 +982,40 @@
                 const data = await response.json();
                 if (data.success) {
                     Swal.fire('Deleted!', 'Education removed', 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Error!', data.message || 'Failed to delete education', 'error');
                 }
             }
         }
 
         // Experience Functions
-        function showExperienceModal() {
+        function showExperienceModal(expId = null) {
             document.getElementById('experienceForm').reset();
             document.getElementById('exp_id').value = '';
+
+            const modalTitle = document.querySelector('#experienceModal .modal-title');
+
+            if (expId) {
+                const exp = profileData.experience.find(e => e.id === expId);
+                if (exp) {
+                    document.getElementById('exp_id').value = exp.id;
+                    document.getElementById('exp_position').value = exp.position;
+                    document.getElementById('exp_company').value = exp.company;
+                    document.getElementById('exp_description').value = exp.description;
+                    document.getElementById('exp_start').value = exp.start_date;
+                    document.getElementById('exp_end').value = exp.end_date;
+                    modalTitle.textContent = 'Edit Experience';
+                }
+            } else {
+                modalTitle.textContent = 'Add Experience';
+            }
+
             const modal = new bootstrap.Modal(document.getElementById('experienceModal'));
             modal.show();
+        }
+
+        function editExperience(id) {
+            showExperienceModal(id);
         }
 
         document.getElementById('experienceForm').addEventListener('submit', async (e) => {
@@ -949,6 +1040,8 @@
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('experienceModal')).hide();
                 Swal.fire('Success!', 'Experience saved!', 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error!', data.message || 'Failed to save experience', 'error');
             }
         });
 
@@ -967,6 +1060,8 @@
                 const data = await response.json();
                 if (data.success) {
                     Swal.fire('Deleted!', 'Experience removed', 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Error!', data.message || 'Failed to delete experience', 'error');
                 }
             }
         }
@@ -993,6 +1088,8 @@
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('skillModal')).hide();
                 Swal.fire('Success!', 'Skill added!', 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error!', data.message || 'Failed to add skill', 'error');
             }
         });
 
@@ -1001,15 +1098,38 @@
             const data = await response.json();
             if (data.success) {
                 Swal.fire('Deleted!', 'Skill removed', 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error!', data.message || 'Failed to delete skill', 'error');
             }
         }
 
         // Certification Functions
-        function showCertificationModal() {
+        function showCertificationModal(certId = null) {
             document.getElementById('certificationForm').reset();
             document.getElementById('cert_id').value = '';
+
+            const modalTitle = document.querySelector('#certificationModal .modal-title');
+
+            if (certId) {
+                const cert = profileData.certifications.find(c => c.id === certId);
+                if (cert) {
+                    document.getElementById('cert_id').value = cert.id;
+                    document.getElementById('cert_name').value = cert.name;
+                    document.getElementById('cert_org').value = cert.issuing_organization;
+                    document.getElementById('cert_date').value = cert.issue_date;
+                    document.getElementById('cert_url').value = cert.credential_url;
+                    modalTitle.textContent = 'Edit Certification';
+                }
+            } else {
+                modalTitle.textContent = 'Add Certification';
+            }
+
             const modal = new bootstrap.Modal(document.getElementById('certificationModal'));
             modal.show();
+        }
+
+        function editCertification(id) {
+            showCertificationModal(id);
         }
 
         document.getElementById('certificationForm').addEventListener('submit', async (e) => {
@@ -1033,6 +1153,8 @@
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('certificationModal')).hide();
                 Swal.fire('Success!', 'Certification saved!', 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error!', data.message || 'Failed to save certification', 'error');
             }
         });
 
@@ -1051,21 +1173,10 @@
                 const data = await response.json();
                 if (data.success) {
                     Swal.fire('Deleted!', 'Certification removed', 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Error!', data.message || 'Failed to delete certification', 'error');
                 }
             }
-        }
-
-        function editEducation(id) {
-            // You can implement edit functionality
-            showEducationModal(id);
-        }
-
-        function editExperience(id) {
-            showExperienceModal();
-        }
-
-        function editCertification(id) {
-            showCertificationModal();
         }
 
         function toggleMobileMenu() {
