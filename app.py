@@ -6568,7 +6568,7 @@ def add_skill():
     try:
         skill = Skill(
             student_profile_id=profile.id,
-            skill_name=request.json.get('skill_name'),
+            name=request.json.get('name'),
             proficiency_level=request.json.get('proficiency_level', 'Intermediate')
         )
         db.session.add(skill)
@@ -6608,7 +6608,7 @@ def add_certification():
     try:
         certification = Certification(
             student_profile_id=profile.id,
-            certification_name=request.json.get('certification_name'),
+            name=request.json.get('name'),
             issuing_organization=request.json.get('issuing_organization'),
             issue_date=datetime.strptime(request.json.get('issue_date'), '%Y-%m-%d').date() if request.json.get('issue_date') else None,
             credential_url=request.json.get('credential_url')
@@ -6633,7 +6633,7 @@ def update_certification(id):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
     try:
-        certification.certification_name = request.json.get('certification_name', certification.certification_name)
+        certification.name = request.json.get('name', certification.name)
         certification.issuing_organization = request.json.get('issuing_organization', certification.issuing_organization)
         certification.credential_url = request.json.get('credential_url', certification.credential_url)
 
